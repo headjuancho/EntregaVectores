@@ -38,7 +38,11 @@ public class BolaFall : MonoBehaviour
 
     void Update()
     {
-        
+
+        position = new MyVector2D(transform.position.x, transform.position.y);
+        MyVector2D blackHolePos = new MyVector2D(blackHole.position.x, blackHole.position.y);
+        accel = blackHolePos - position;
+
         position.Draw(Color.blue);
         displacement.Draw(position, Color.red);
         accel.Draw(position, Color.green);
@@ -47,26 +51,10 @@ public class BolaFall : MonoBehaviour
 
     public void Move()
     {
-        velocity += accel * Time.deltaTime;
+        
 
-        displacement = velocity * Time.deltaTime;
-        position = position + displacement;
-
-        if(Mathf.Abs(position.x) > camera.orthographicSize)
-        {
-            velocity.x = velocity.x * -1;
-            position.x = Mathf.Sign(position.x) * camera.orthographicSize;
-            velocity *= dampingFactor;
-
-        }
-
-        if (Mathf.Abs(position.y) > camera.orthographicSize)
-        {
-            velocity.y = velocity.y * -1;
-            position.y = Mathf.Sign(position.y) * camera.orthographicSize;
-            velocity *= dampingFactor;
-
-        }
+        velocity += accel * Time.fixedDeltaTime;
+        position += velocity * Time.fixedDeltaTime;
 
 
         transform.position = new Vector3(position.x, position.y);
