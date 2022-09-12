@@ -35,8 +35,8 @@ public class HelloWorld : MonoBehaviour
         MyVector2D f = a * 2f;
 
 
-        MyVector2D d = a.Sum(b);
-        Debug.Log(d.x + "," + d.y);
+        //MyVector2D d = a.Sum(b);
+        //Debug.Log(d.x + "," + d.y);
         
 
         Vector2 au = new Vector2 (2, 3);
