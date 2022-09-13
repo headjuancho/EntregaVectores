@@ -27,6 +27,9 @@ public class BolitaForces : MonoBehaviour
     [SerializeField]
     private float frictionCoefficicent =0.9f;
 
+    [SerializeField]
+    private bool useFluid = false;
+
 
     private MyVector2D displacement;
 
@@ -62,12 +65,28 @@ public class BolitaForces : MonoBehaviour
         weight = gravity * mass;
         ApplyForce(weight);
 
-        //ApplyForce(wind);
+        ApplyForce(wind);
 
-        //Friccion
 
-        //MyVector2D friction = -frictionCoefficicent * weight.magnitude * velocity.normalize;
-        //ApplyForce(friction);
+
+        if(useFluid)
+        {
+            if (transform.localPosition.y >=0)
+            {
+                ApplyFriction();
+            }
+
+            if(transform.localPosition.y <=0)
+            {
+                ApplyFluid();
+            }
+          
+            
+        }
+        else
+        {
+            ApplyFriction();
+        }
 
         //integrate acceleration and velocity
         Move();
@@ -114,5 +133,32 @@ public class BolitaForces : MonoBehaviour
     {
         netForce += force;
         accel = netForce/mass;
+    }
+
+    private void ApplyFriction()
+    {
+        //Friccion
+        float Normal = -mass * gravity.y;
+        MyVector2D friction = -frictionCoefficicent * Normal * velocity.normalize;
+        ApplyForce(friction);
+    }
+
+    private void ApplyFluid()
+    {
+
+        if (transform.localPosition.y <= 0)
+        {
+            float frotalArea = transform.localScale.x;
+            float rho = 4;
+            float fluidDragCoefficient = 1;
+            float velocityMagnitude = velocity.magnitude;
+
+            float scalarPart = -0.5f * rho * velocityMagnitude * velocityMagnitude * frotalArea *
+                fluidDragCoefficient;
+
+            MyVector2D fluidFriction = scalarPart * velocity.normalize;
+            ApplyForce(fluidFriction);
+
+        }
     }
 }
