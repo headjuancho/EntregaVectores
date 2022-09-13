@@ -5,7 +5,20 @@ using UnityEngine;
 
 public class BolitaForces : MonoBehaviour
 {
+
+    public enum bolitaMode
+    {
+        Friction,
+        FluidFriction,
+        Gravity
+    }
     private MyVector2D position;
+
+    [SerializeField]
+    private bolitaMode mode;
+
+    [SerializeField]
+    private BolitaForces otherBall;
 
     [SerializeField]
     Camera camera;
@@ -27,8 +40,7 @@ public class BolitaForces : MonoBehaviour
     [SerializeField]
     private float frictionCoefficicent =0.9f;
 
-    [SerializeField]
-    private bool useFluid = false;
+   
 
 
     private MyVector2D displacement;
@@ -62,14 +74,17 @@ public class BolitaForces : MonoBehaviour
         netForce = new MyVector2D(0, 0);
 
         //mg
-        weight = gravity * mass;
-        ApplyForce(weight);
 
-        ApplyForce(wind);
+        if (mode != bolitaMode.Gravity)
+        {
+            weight = gravity * mass;
+            ApplyForce(weight);
+
+            ApplyForce(wind);
+        }
 
 
-
-        if(useFluid)
+        if(mode == bolitaMode.FluidFriction)
         {
             if (transform.localPosition.y >=0)
             {
@@ -83,11 +98,19 @@ public class BolitaForces : MonoBehaviour
           
             
         }
-        else
+        else if (mode == bolitaMode.Friction)
         {
             ApplyFriction();
         }
 
+        else if (mode == bolitaMode.Gravity)
+        {
+            MyVector2D diff = otherBall.position - position;
+            float distance = diff.magnitude;
+            float scalarPart = (mass * otherBall.mass) / (distance * distance);
+            MyVector2D gravityForce = diff.normalize * scalarPart;
+            ApplyForce(gravityForce);
+        }
         //integrate acceleration and velocity
         Move();
     }
@@ -109,22 +132,19 @@ public class BolitaForces : MonoBehaviour
         velocity = velocity + accel * Time.fixedDeltaTime;
         position = position + velocity * Time.fixedDeltaTime;
 
-        if (Mathf.Abs(position.x) > camera.orthographicSize)
-        {
-            velocity.x = velocity.x * -1;
-            position.x = Mathf.Sign(position.x) * camera.orthographicSize;
-            velocity *= dampingFactor;
 
+        if(mode != bolitaMode.Gravity)
+        {
+            CheckBoxBounds();
         }
 
-        if (Mathf.Abs(position.y) > camera.orthographicSize)
+        else
         {
-            velocity.y = velocity.y * -1;
-            position.y = Mathf.Sign(position.y) * camera.orthographicSize;
-            velocity *= dampingFactor;
-
+            if (velocity.magnitude >= 10)
+            {
+                velocity = 10f * velocity.normalize;
+            }
         }
-
 
         transform.position = new Vector3(position.x, position.y);
     }
@@ -158,6 +178,30 @@ public class BolitaForces : MonoBehaviour
 
             MyVector2D fluidFriction = scalarPart * velocity.normalize;
             ApplyForce(fluidFriction);
+
+        }
+    }
+
+    private void Gravity()
+    {
+        
+    }
+
+    private void CheckBoxBounds()
+    {
+        if (Mathf.Abs(position.x) > camera.orthographicSize)
+        {
+            velocity.x = velocity.x * -1;
+            position.x = Mathf.Sign(position.x) * camera.orthographicSize;
+            velocity *= dampingFactor;
+
+        }
+
+        if (Mathf.Abs(position.y) > camera.orthographicSize)
+        {
+            velocity.y = velocity.y * -1;
+            position.y = Mathf.Sign(position.y) * camera.orthographicSize;
+            velocity *= dampingFactor;
 
         }
     }
