@@ -51,7 +51,7 @@ public class MovingToBall : MonoBehaviour
         {
             acceleration = GetWorldMousePosition() - transform.position;
 
-
+            velocity.z = 0;
 
         }
 
